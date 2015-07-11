@@ -18,16 +18,45 @@ import android.widget.Toast;
 import com.choubey.autocallreponder.db.TemplatesDbDao;
 import com.choubey.autocallreponder.db.UserTemplatesData;
 
-
 public class TemplateDetailsDisplayManager {
     private static final int POPUP_WINDOW_WIDTH_IN_DP = 250;
-    private static final int POPUP_WINDOW_HEIGHT_IN_DP = 200;
+    private static final int POPUP_WINDOW_HEIGHT_IN_DP = 250;
     private static final String Y = "Y";
     private static final String N = "N";
     private static final String ACTIVATE = "ACTIVATE";
     private static final String DEACTIVATE  = "DEACTIVATE";
     private static final String YES = "Yes";
     private static final String NO = "No";
+    private Context context;
+    private static TemplateDetailsDisplayManager templateDetailsDisplayManager;
+
+    private TemplateDetailsDisplayManager(Context context) {
+        this.context = context;
+    }
+
+    public static TemplateDetailsDisplayManager createAndGetNewInstance(Context context)
+    {
+        if(templateDetailsDisplayManager == null)
+        {
+            synchronized (TemplateDetailsDisplayManager.class)
+            {
+                if(templateDetailsDisplayManager == null)
+                {
+                    templateDetailsDisplayManager = new TemplateDetailsDisplayManager(context);
+                }
+            }
+        }
+        return templateDetailsDisplayManager;
+    }
+
+    public static TemplateDetailsDisplayManager getInstance()
+    {
+        if(templateDetailsDisplayManager == null)
+        {
+            throw new IllegalStateException("No instance created yet. Please create an instace first.");
+        }
+        return templateDetailsDisplayManager;
+    }
 
     public void showDetailsAsPopup(View parentView, final Activity context, final UserTemplatesData userTemplatesData)
     {
@@ -36,20 +65,19 @@ public class TemplateDetailsDisplayManager {
         LinearLayout detailsLinearLayout = new LinearLayout(context);
         detailsLinearLayout.setOrientation(LinearLayout.VERTICAL);
 
-        TextView contactNumberTextView = createCustomTextView(context, "# - " + userTemplatesData.getValueForColumn(UserTemplatesData.UserTemplates.COLUMN_NAME_CONTACT_NUMBER));
+        TextView contactNumberTextView = createCustomTextView(context, "# - " + userTemplatesData.getContactNumber());
         contactNumberTextView.setPadding(Utils.convertDpToPixel(8, context).intValue(), Utils.convertDpToPixel(8, context).intValue(), 0, 0);
 
-        TextView messageTextView = createCustomTextView(context, userTemplatesData.getValueForColumn(UserTemplatesData.UserTemplates.COLUMN_NAME_MESSAGE));
+        TextView messageTextView = createCustomTextView(context, userTemplatesData.getMessage());
         messageTextView.setGravity(Gravity.CENTER);
         messageTextView.setPadding(Utils.convertDpToPixel(8, context).intValue(), Utils.convertDpToPixel(20, context).intValue(),
                                             Utils.convertDpToPixel(8, context).intValue(), Utils.convertDpToPixel(20, context).intValue());
 
-        TextView activeTextView = createCustomTextView(context, "Active?? - " + Utils.convertBoolCharToString(userTemplatesData.getValueForColumn(UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE)));
+        TextView activeTextView = createCustomTextView(context, "Active?? - " + Utils.convertBoolCharToString(userTemplatesData.getStatus().name()));
         activeTextView.setPadding(Utils.convertDpToPixel(8, context).intValue(), 0, 0, 0);
 
         Button closePopupButton = createCustomButton(context, "CLOSE");
-        Button switchActiveButton = createCustomButton(context,
-                getSwitchActivateButtonText(userTemplatesData.getValueForColumn(UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE)));
+        Button switchActiveButton = createCustomButton(context, getSwitchActivateButtonText(userTemplatesData.getStatus().name()));
         Button deleteTemplateButton = createCustomButton(context, "DELETE TEMPLATE");
 
         LinearLayout buttonsLayoutFirstLine = new LinearLayout(context);
@@ -87,14 +115,23 @@ public class TemplateDetailsDisplayManager {
             }
         });
 
-        switchActiveButton.setOnClickListener((new View.OnClickListener(){
+        switchActiveButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 flipActivate(userTemplatesData, context);
                 detailsPopupWindow.dismiss();
                 refreshPage(context);
             }
-        }));
+        });
+
+        deleteTemplateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteTemplate(userTemplatesData, context);
+                detailsPopupWindow.dismiss();
+                refreshPage(context);
+            }
+        });
     }
 
     private TextView createCustomTextView(Context context, String text)
@@ -132,20 +169,20 @@ public class TemplateDetailsDisplayManager {
      */
     private void flipActivate(UserTemplatesData userTemplatesData, Context context)
     {
-        String currentStatus = userTemplatesData.getValueForColumn(UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE);
-        String newStatus = null;
+        UserTemplatesData.ActiveStatus currentStatus = userTemplatesData.getStatus();
+        UserTemplatesData.ActiveStatus newStatus = null;
         String message = null;
-        if(Y.equals(currentStatus))
+        if(currentStatus == UserTemplatesData.ActiveStatus.Y)
         {
-            newStatus = N;
+            newStatus = UserTemplatesData.ActiveStatus.N;
             message = "Template successfully deactivated.";
         }
         else
         {
-            newStatus = Y;
+            newStatus = UserTemplatesData.ActiveStatus.Y;
             message = "Template successfully activated.";
         }
-        userTemplatesData.addValueForValue(UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE, newStatus);
+        userTemplatesData.setStatus(newStatus);
 
         try {
             TemplatesDbDao.updateRecord(userTemplatesData, context);
@@ -156,6 +193,19 @@ public class TemplateDetailsDisplayManager {
             message = "Error updating template. Please try again later.";
         }
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private void deleteTemplate(UserTemplatesData userTemplatesData, Context context)
+    {
+        String id = userTemplatesData.getTemplateId();
+        try {
+            TemplatesDbDao.deleteTemplate(context, id);
+            Toast.makeText(context, "Template deleted successfully", Toast.LENGTH_SHORT).show();
+        }
+        catch(Exception e) {
+            Log.e(this.getClass().getSimpleName(), "Error deleting data for row id = " + id);
+            Toast.makeText(context, "Error deleting data. Please try again.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void refreshPage(Activity context)

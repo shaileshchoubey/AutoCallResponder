@@ -7,8 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.choubey.autocallreponder.Utils;
-
 import java.util.LinkedList;
 import java.util.List;
 
@@ -58,10 +56,10 @@ public class TemplatesDbDao {
             c.moveToNext();
             currentIndex++;
 
-            userTemplatesData.addValueForValue(UserTemplatesData.UserTemplates._ID, String.valueOf(id));
-            userTemplatesData.addValueForValue(UserTemplatesData.UserTemplates.COLUMN_NAME_CONTACT_NUMBER, number);
-            userTemplatesData.addValueForValue(UserTemplatesData.UserTemplates.COLUMN_NAME_MESSAGE, message);
-            userTemplatesData.addValueForValue(UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE, active);
+            userTemplatesData.setTemplateId(String.valueOf(id));
+            userTemplatesData.setContactNumber(number);
+            userTemplatesData.setMessage(message);
+            userTemplatesData.setStatus(UserTemplatesData.ActiveStatus.valueOf(active));
 
             userTemplatesDataList.add(userTemplatesData);
         }
@@ -73,11 +71,11 @@ public class TemplatesDbDao {
         TemplatesDbHelper dbHelper = new TemplatesDbHelper(context);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        String newStatus = userTemplatesData.getValueForColumn(UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE);
+        UserTemplatesData.ActiveStatus newStatus = userTemplatesData.getStatus();
         ContentValues cv = new ContentValues();
-        cv.put(UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE, newStatus);
+        cv.put(UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE, newStatus.name());
 
-        String id = userTemplatesData.getValueForColumn(UserTemplatesData.UserTemplates._ID);
+        String id = userTemplatesData.getTemplateId();
         db.update(UserTemplatesData.UserTemplates.TABLE_NAME, cv,
                                     UserTemplatesData.UserTemplates.COLUMN_NAME_TEMPLATE_ID + " = " + id, null);
     }
@@ -94,17 +92,40 @@ public class TemplatesDbDao {
             return;
         }
 
-        String numberEntered = userTemplatesData.getValueForColumn(UserTemplatesData.UserTemplates.COLUMN_NAME_CONTACT_NUMBER);
-        String messageEntered = userTemplatesData.getValueForColumn(UserTemplatesData.UserTemplates.COLUMN_NAME_MESSAGE);
-        String active = userTemplatesData.getValueForColumn(UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE);
+        String numberEntered = userTemplatesData.getContactNumber();
+        String messageEntered = userTemplatesData.getMessage();
+        UserTemplatesData.ActiveStatus active = userTemplatesData.getStatus();
 
         ContentValues contentValues = new ContentValues();
         contentValues.put(UserTemplatesData.UserTemplates.COLUMN_NAME_CONTACT_NUMBER, numberEntered);
         contentValues.put(UserTemplatesData.UserTemplates.COLUMN_NAME_MESSAGE, messageEntered);
-        contentValues.put(UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE, Utils.convertBoolCharToString(active));
+        contentValues.put(UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE, active.name());
 
         long newRowId = db.insert(UserTemplatesData.UserTemplates.TABLE_NAME, null, contentValues);
         db.close();
         Log.i(TemplatesDbDao.class.getSimpleName(), "Value succesfully saved. New row id = " + newRowId);
+    }
+
+    public static void deleteTemplate(Context context, String id)
+    {
+        TemplatesDbHelper dbHelper = new TemplatesDbHelper(context);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        if(db == null)
+        {
+            Log.e(TemplatesDbDao.class.getSimpleName(), "Error occured while opening writable database.");
+            Toast.makeText(context, "Some error occured. Try again after some time", Toast.LENGTH_LONG);
+            return;
+        }
+
+        long numberOfRowsDeleted = db.delete(UserTemplatesData.UserTemplates.TABLE_NAME,
+                                    UserTemplatesData.UserTemplates.COLUMN_NAME_TEMPLATE_ID + " = " + id, null);
+        if(numberOfRowsDeleted == 1) {
+            Log.i(TemplatesDbDao.class.getSimpleName(), "Template deleted. Id = " + id);
+        }
+        else {
+            throw new RuntimeException("Error deleting data for row id = " + id);
+        }
+        db.close();
     }
 }

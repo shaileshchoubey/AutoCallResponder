@@ -30,4 +30,12 @@ public class Utils {
             return NO;
         }
     }
+
+    public static void validateNotNull(Object object, String message)
+    {
+        if(object == null)
+        {
+            throw new IllegalArgumentException(message);
+        }
+    }
 }

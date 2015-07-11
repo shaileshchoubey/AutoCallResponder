@@ -2,29 +2,45 @@ package com.choubey.autocallreponder.db;
 
 import android.provider.BaseColumns;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Created by choubey on 6/28/15.
  */
 public final class UserTemplatesData {
-    private Map<String, String> templateDataMap = new HashMap<>();
-    public UserTemplatesData() {}
+    private String templateId;
+    private String contactNumber;
+    private String message;
+    private ActiveStatus status;
 
-    public void addValueForValue(String columnName, String columnValue)
-    {
-        templateDataMap.put(columnName, columnValue);
+    public String getTemplateId() {
+        return templateId;
     }
 
-    public Map<String, String> getTemplateData()
-    {
-        return templateDataMap;
+    public void setTemplateId(String templateId) {
+        this.templateId = templateId;
     }
 
-    public String getValueForColumn(String columnName)
-    {
-        return templateDataMap.get(columnName);
+    public String getContactNumber() {
+        return contactNumber;
+    }
+
+    public void setContactNumber(String contactNumber) {
+        this.contactNumber = contactNumber;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public ActiveStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ActiveStatus status) {
+        this.status = status;
     }
 
     public static class UserTemplates implements BaseColumns
@@ -34,5 +50,22 @@ public final class UserTemplatesData {
         public static final String COLUMN_NAME_CONTACT_NUMBER = "CONTACT_NUMBER";
         public static final String COLUMN_NAME_MESSAGE = "MESSAGE";
         public static final String COLUMN_NAME_ACTIVE = "ACTIVE";
+    }
+
+    public static enum ActiveStatus
+    {
+        Y,
+        N
+    }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder toString = new StringBuilder();
+        toString.append("templateId:" + templateId + " ");
+        toString.append("contactNumber:" + contactNumber + " ");
+        toString.append("message:" + message + " ");
+        toString.append("status:" + status);
+        return String.valueOf(toString);
     }
 }

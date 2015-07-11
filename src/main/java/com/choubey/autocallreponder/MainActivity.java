@@ -13,31 +13,20 @@ import com.choubey.autocallreponder.db.UserTemplatesData;
 
 public class MainActivity extends ActionBarActivity {
     private static final String N = "N";
+    private static final String Y = "Y";
+    private ActionHandler actionHandler = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        actionHandler = ActionHandler.createNewInstance(this);
+        actionHandler.registerBroadcastReceiver();
     }
 
-    public void sendMessage(View view) {
-        Intent intent = new Intent(this, ActionHandlerActivity.class);
-        EditText editTextForNumber = (EditText) findViewById(R.id.edit_number);
-        EditText editTextForMessage = (EditText) findViewById(R.id.edit_text);
-
-        String numberEntered = editTextForNumber.getText().toString();
-        String messageEntered = editTextForMessage.getText().toString();
-
-        intent.putExtra(DisplayKeys.NUMBER_ENTERED_KEY.value, numberEntered);
-        intent.putExtra(DisplayKeys.MESSAGE_ENTERED_KEY.value, messageEntered);
-        startActivity(intent);
-    }
-
-    public void activate(View view) {
-
-    }
-
-    public void save(View view) {
+    private UserTemplatesData constructDataFromInput(UserTemplatesData.ActiveStatus active)
+    {
         EditText editTextForNumber = (EditText) findViewById(R.id.edit_number);
         EditText editTextForMessage = (EditText) findViewById(R.id.edit_text);
 
@@ -45,10 +34,21 @@ public class MainActivity extends ActionBarActivity {
         String messageEntered = editTextForMessage.getText().toString();
 
         UserTemplatesData userTemplatesData = new UserTemplatesData();
-        userTemplatesData.addValueForValue(UserTemplatesData.UserTemplates.COLUMN_NAME_CONTACT_NUMBER, numberEntered);
-        userTemplatesData.addValueForValue(UserTemplatesData.UserTemplates.COLUMN_NAME_MESSAGE, messageEntered);
-        userTemplatesData.addValueForValue(UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE, N);
+        userTemplatesData.setContactNumber(numberEntered);
+        userTemplatesData.setMessage(messageEntered);
+        userTemplatesData.setStatus(active);
+        return userTemplatesData;
+    }
 
+    public void activate(View view) {
+        UserTemplatesData userTemplatesData = constructDataFromInput(UserTemplatesData.ActiveStatus.Y);
+        TemplatesDbDao.createTemplate(this, userTemplatesData);
+        setContentView(R.layout.activity_main);
+        Toast.makeText(view.getContext(), "Template activated", Toast.LENGTH_SHORT).show();
+    }
+
+    public void save(View view) {
+        UserTemplatesData userTemplatesData = constructDataFromInput(UserTemplatesData.ActiveStatus.N);
         TemplatesDbDao.createTemplate(this, userTemplatesData);
         setContentView(R.layout.activity_main);
         Toast.makeText(view.getContext(), "Template saved successfully", Toast.LENGTH_SHORT).show();
@@ -57,5 +57,12 @@ public class MainActivity extends ActionBarActivity {
     public void manageExistingTemplates(View view) {
         Intent intent = new Intent(this, ManageTemplatesActivity.class);
         startActivity(intent);
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        actionHandler.unregisterBroadcastReceiver();
     }
 }

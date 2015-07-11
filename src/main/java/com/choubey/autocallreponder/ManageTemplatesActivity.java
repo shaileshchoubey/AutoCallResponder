@@ -23,14 +23,14 @@ import java.util.List;
 
 
 public class ManageTemplatesActivity extends ActionBarActivity {
-    private TemplateDetailsDisplayManager detailsDisplayManager = new TemplateDetailsDisplayManager();
+    private TemplateDetailsDisplayManager detailsDisplayManager = null;
     private static final String Y = "Y";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         final Activity context = this;
-
+        detailsDisplayManager = TemplateDetailsDisplayManager.createAndGetNewInstance(context);
         List<UserTemplatesData> userTemplatesDataList = TemplatesDbDao.queryAndGetTemplatesData(context);
         Log.i(this.getLocalClassName(), "Queried the db to get all the user templates. Populating this data into the scrollview");
         final ScrollView manageTemplatesScrollView = new ScrollView(context);
@@ -44,7 +44,7 @@ public class ManageTemplatesActivity extends ActionBarActivity {
         Collections.sort(userTemplatesDataList, new CustomComparator());
         for(final UserTemplatesData userTemplatesData: userTemplatesDataList) {
             LinearLayout rowDataLinearLayout = new LinearLayout(context);
-            String templateActive = userTemplatesData.getValueForColumn(UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE);
+            String templateActive = userTemplatesData.getStatus().name();
             int textColor = Y.equals(templateActive) ? Color.WHITE : Color.GRAY;
 
             rowDataLinearLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -54,18 +54,16 @@ public class ManageTemplatesActivity extends ActionBarActivity {
             int width = displaymetrics.widthPixels;
             rowDataLinearLayout.setLayoutParams(new LinearLayout.LayoutParams(width, LinearLayout.LayoutParams.WRAP_CONTENT));
             rowDataLinearLayout.setWeightSum(1.0f);
-            Log.i(this.getLocalClassName(), "Width of linear layout is = " + rowDataLinearLayout.getWidth());
-            Log.i(this.getLocalClassName(), "Height of linear layout is = " + rowDataLinearLayout.getHeight());
 
             TextView numberTextView = new TextView(context);
             numberTextView.setGravity(Gravity.CENTER);
-            numberTextView.setText(userTemplatesData.getValueForColumn(UserTemplatesData.UserTemplates.COLUMN_NAME_CONTACT_NUMBER));
+            numberTextView.setText(userTemplatesData.getContactNumber());
             numberTextView.setTextColor(textColor);
             numberTextView.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.3f));
 
             TextView messageTextView = new TextView(context);
             messageTextView.setGravity(Gravity.CENTER);
-            messageTextView.setText(userTemplatesData.getValueForColumn(UserTemplatesData.UserTemplates.COLUMN_NAME_MESSAGE));
+            messageTextView.setText(userTemplatesData.getMessage());
             messageTextView.setTextColor(textColor);
             messageTextView.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.5f));
 
@@ -102,10 +100,18 @@ public class ManageTemplatesActivity extends ActionBarActivity {
             {
                 return 0;
             }
-            if(Y.equals(lhs.getValueForColumn(UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE)))
+
+            if(lhs.getStatus() == rhs.getStatus())
+            {
+                return lhs.getTemplateId().compareTo(rhs.getTemplateId());
+            }
+
+            if(UserTemplatesData.ActiveStatus.Y == lhs.getStatus()
+                    && UserTemplatesData.ActiveStatus.N == rhs.getStatus())
             {
                 return -1;
             }
+
             return 1;
         }
     }

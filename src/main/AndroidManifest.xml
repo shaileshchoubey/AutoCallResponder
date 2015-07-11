@@ -22,14 +22,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ActionHandlerActivity"
-            android:label="@string/title_activity_display_message"
-            android:parentActivityName=".MainActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.choubey.autocallreponder.MainActivity" />
-        </activity>
-        <activity
             android:name=".ManageTemplatesActivity"
             android:label="@string/title_activity_manage_templates" >
         </activity>

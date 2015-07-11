@@ -4,11 +4,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.android.internal.telephony.ITelephony;
+import com.choubey.autocallreponder.messagesender.MessageDetails;
+import com.choubey.autocallreponder.messagesender.MessageSender;
+import com.choubey.autocallreponder.messagesender.SmsMessageSender;
 
 import java.lang.reflect.Method;
 
@@ -18,7 +21,8 @@ import java.lang.reflect.Method;
 public class CustomBroadcastReceiver extends BroadcastReceiver {
     private TelephonyManager telephonyManager;
     private ITelephony telephonyService;
-    private PhoneStateListener callBlockListener;
+    private MessageSender messageSender = new SmsMessageSender();
+    private static final long DURATION_OF_RING_REQUIRED = 2000;
 
     @Override
     public void onReceive(Context context, Intent intent)
@@ -28,31 +32,34 @@ public class CustomBroadcastReceiver extends BroadcastReceiver {
         try {
             c = Class.forName(telephonyManager.getClass().getName());
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            Log.e(this.getClass().getSimpleName(), "Error loading class TelephonyManager", e);
         }
 
         Method m = null;
         try {
             m = c.getDeclaredMethod("getITelephony");
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+        } catch (SecurityException| NoSuchMethodException  e) {
+            Log.e(this.getClass().getSimpleName(), "Error loading method getITelephony for class TelephonyManager", e);
         }
-        m.setAccessible(true);
 
+        m.setAccessible(true);
         try {
             Bundle extras = intent.getExtras();
             String incomingNumber = extras.getString(TelephonyManager.EXTRA_INCOMING_NUMBER);
             telephonyService = (ITelephony)m.invoke(telephonyManager);
+            telephonyService.silenceRinger();
+            Thread.sleep(DURATION_OF_RING_REQUIRED);
             telephonyService.endCall();
-            //telephonyManager.getNetworkOperatorName();
-            Toast.makeText(context, "Call silenced from incoming number = " + incomingNumber, Toast.LENGTH_LONG).show();
-            //callBlockListener = new CustomPhoneStateListener(telephonyService);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            Log.i(this.getClass().getSimpleName(), "Incoming call from number = " + incomingNumber + " ended. Sending a message now...");
 
-        //telephonyManager.listen(callBlockListener, PhoneStateListener.LISTEN_CALL_STATE);
+            MessageDetails messageDetails = new MessageDetails();
+            messageDetails.setMessage("");
+            messageDetails.setPhoneNumber("");
+            //messageSender.sendMessage(messageDetails);
+            Log.i(this.getClass().getSimpleName(), "Message successfully sent with details = " + String.valueOf(messageDetails));
+            Toast.makeText(context, "Incoming call from number = " + incomingNumber + " ended and message sent", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Log.e(this.getClass().getSimpleName(), "Error invoking getITelephony method", e);
+        }
     }
 }
