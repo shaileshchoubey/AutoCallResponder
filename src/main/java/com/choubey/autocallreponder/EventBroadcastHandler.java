@@ -1,42 +1,38 @@
 package com.choubey.autocallreponder;
 
-import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.IntentFilter;
-
 /**
  * Created by choubey on 7/11/15.
  */
-public class ActionHandler {
-    public static Activity parentActivity = null;
+public class EventBroadcastHandler {
+/*    public static Activity parentActivity = null;
     private BroadcastReceiver callBlocker = new CustomBroadcastReceiver();
-    private static ActionHandler actionHandler = null;
+    private static EventBroadcastHandler eventBroadcastHandler = null;
     private IntentFilter filter = null;
 
-    private ActionHandler(Activity parentActivity)
+    private EventBroadcastHandler(Activity parentActivity)
     {
         this.parentActivity = parentActivity;
     }
 
-    public static ActionHandler createNewInstance(Activity parentActivity)
+    public static EventBroadcastHandler createNewInstance(Activity parentActivity)
     {
-        if(actionHandler == null) {
-            synchronized (ActionHandler.class) {
-                if(actionHandler == null) {
-                    actionHandler = new ActionHandler(parentActivity);
+        if(eventBroadcastHandler == null) {
+            synchronized (EventBroadcastHandler.class) {
+                if(eventBroadcastHandler == null) {
+                    eventBroadcastHandler = new EventBroadcastHandler(parentActivity);
                 }
             }
         }
-        return actionHandler;
+        return eventBroadcastHandler;
     }
 
-    public static ActionHandler getSingletonInstance()
+    public static EventBroadcastHandler getSingletonInstance()
     {
-        if(actionHandler == null)
+        if(eventBroadcastHandler == null)
         {
-            throw new IllegalStateException("ActionHandler instance is not created yet! Please create an instance first.");
+            throw new IllegalStateException("EventBroadcastHandler instance is not created yet! Please create an instance first.");
         }
-        return actionHandler;
+        return eventBroadcastHandler;
     }
 
     public void registerBroadcastReceiver()
@@ -58,5 +54,5 @@ public class ActionHandler {
             parentActivity.unregisterReceiver(callBlocker);
             callBlocker = null;
         }
-    }
+    }*/
 }

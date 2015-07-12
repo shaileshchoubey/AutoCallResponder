@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.choubey.autocallreponder.db.InmemoryCacheFreshness;
 import com.choubey.autocallreponder.db.TemplatesDbDao;
 import com.choubey.autocallreponder.db.UserTemplatesData;
 
@@ -14,15 +15,11 @@ import com.choubey.autocallreponder.db.UserTemplatesData;
 public class MainActivity extends ActionBarActivity {
     private static final String N = "N";
     private static final String Y = "Y";
-    private ActionHandler actionHandler = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        actionHandler = ActionHandler.createNewInstance(this);
-        actionHandler.registerBroadcastReceiver();
     }
 
     private UserTemplatesData constructDataFromInput(UserTemplatesData.ActiveStatus active)
@@ -44,6 +41,7 @@ public class MainActivity extends ActionBarActivity {
         UserTemplatesData userTemplatesData = constructDataFromInput(UserTemplatesData.ActiveStatus.Y);
         TemplatesDbDao.createTemplate(this, userTemplatesData);
         setContentView(R.layout.activity_main);
+        InmemoryCacheFreshness.setCacheFresh(false);
         Toast.makeText(view.getContext(), "Template activated", Toast.LENGTH_SHORT).show();
     }
 
@@ -57,12 +55,5 @@ public class MainActivity extends ActionBarActivity {
     public void manageExistingTemplates(View view) {
         Intent intent = new Intent(this, ManageTemplatesActivity.class);
         startActivity(intent);
-    }
-
-    @Override
-    protected void onDestroy()
-    {
-        super.onDestroy();
-        actionHandler.unregisterBroadcastReceiver();
     }
 }

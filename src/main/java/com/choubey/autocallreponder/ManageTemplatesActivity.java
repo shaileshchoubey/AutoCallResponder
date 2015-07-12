@@ -35,7 +35,7 @@ public class ManageTemplatesActivity extends ActionBarActivity {
         Log.i(this.getLocalClassName(), "Queried the db to get all the user templates. Populating this data into the scrollview");
         final ScrollView manageTemplatesScrollView = new ScrollView(context);
         manageTemplatesScrollView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        manageTemplatesScrollView.setBackgroundColor(Color.parseColor("#3d455b"));
+        manageTemplatesScrollView.setBackgroundColor(Color.parseColor("#d93d455b"));
 
         LinearLayout outerLinearLayout = new LinearLayout(context);
         outerLinearLayout.setOrientation(LinearLayout.VERTICAL);

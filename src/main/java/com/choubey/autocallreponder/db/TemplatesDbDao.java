@@ -26,19 +26,46 @@ public class TemplatesDbDao {
                 UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE
         };
 
-        String sortOrder =
-                UserTemplatesData.UserTemplates.COLUMN_NAME_TEMPLATE_ID;
+        String sortOrder = UserTemplatesData.UserTemplates.COLUMN_NAME_TEMPLATE_ID;
+        Cursor c = db.query(
+                UserTemplatesData.UserTemplates.TABLE_NAME,
+                projection,
+                null,
+                null,
+                null,
+                null,
+                sortOrder
+        );
+        return constructUserDataFromOutput(c);
+    }
+
+    public static List<UserTemplatesData> queryAndGetTemplatesDataForActiveUsers(Context context) {
+        TemplatesDbHelper dbHelper = new TemplatesDbHelper(context);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String[] projection = {
+                UserTemplatesData.UserTemplates.COLUMN_NAME_TEMPLATE_ID,
+                UserTemplatesData.UserTemplates.COLUMN_NAME_CONTACT_NUMBER,
+                UserTemplatesData.UserTemplates.COLUMN_NAME_MESSAGE,
+                UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE
+        };
+
+        String sortOrder = UserTemplatesData.UserTemplates.COLUMN_NAME_TEMPLATE_ID;
 
         Cursor c = db.query(
-                UserTemplatesData.UserTemplates.TABLE_NAME,  // The table to query
-                projection,                               // The columns to return
-                null,                                // The columns for the WHERE clause
-                null,                            // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                sortOrder                                 // The sort order
+                UserTemplatesData.UserTemplates.TABLE_NAME,
+                projection,
+                UserTemplatesData.UserTemplates.COLUMN_NAME_ACTIVE + "='" + UserTemplatesData.ActiveStatus.Y.name() + "'",
+                null,
+                null,
+                null,
+                sortOrder
         );
+        return constructUserDataFromOutput(c);
+    }
 
+    private static List<UserTemplatesData> constructUserDataFromOutput(Cursor c)
+    {
         c.moveToFirst();
         int numberOfEntriesInDb = c.getCount();
         int currentIndex = 0;

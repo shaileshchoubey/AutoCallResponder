@@ -15,6 +15,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.choubey.autocallreponder.db.InmemoryCacheFreshness;
 import com.choubey.autocallreponder.db.TemplatesDbDao;
 import com.choubey.autocallreponder.db.UserTemplatesData;
 
@@ -121,6 +122,7 @@ public class TemplateDetailsDisplayManager {
                 flipActivate(userTemplatesData, context);
                 detailsPopupWindow.dismiss();
                 refreshPage(context);
+                InmemoryCacheFreshness.setCacheFresh(false);
             }
         });
 
@@ -130,6 +132,7 @@ public class TemplateDetailsDisplayManager {
                 deleteTemplate(userTemplatesData, context);
                 detailsPopupWindow.dismiss();
                 refreshPage(context);
+                InmemoryCacheFreshness.setCacheFresh(false);
             }
         });
     }
