@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.MODIFY_PHONE_STATE" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
         android:allowBackup="true"
@@ -25,12 +26,29 @@
             android:label="@string/title_activity_manage_templates" >
         </activity>
 
-        <receiver android:name=".CustomBroadcastReceiver">
+        <activity
+            android:name=".fetchcontacts.FetchContactsMainActivity"
+            android:label="@string/select_contact"
+            android:launchMode="singleTop"
+            >
+
             <intent-filter>
-                <action android:name="android.intent.action.PHONE_STATE">
+                <action android:name="android.intent.action.SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+        </activity>
+
+        <receiver android:name=".CustomBroadcastReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" >
                 </action>
             </intent-filter>
         </receiver>
+
     </application>
 
 </manifest>

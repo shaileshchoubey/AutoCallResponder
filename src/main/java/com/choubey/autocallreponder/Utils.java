@@ -1,6 +1,7 @@
 package com.choubey.autocallreponder;
 
 import android.content.Context;
+import android.telephony.PhoneNumberUtils;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 
@@ -37,5 +38,12 @@ public class Utils {
         {
             throw new IllegalArgumentException(message);
         }
+    }
+
+    public static String formatPhoneNumber(Context context, String phoneNumber)
+    {
+       /* TelephonyManager tm = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+        String countryCode = tm.getSimCountryIso();*/
+        return PhoneNumberUtils.formatNumber(phoneNumber);
     }
 }

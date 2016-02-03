@@ -25,7 +25,7 @@ import java.util.Map;
 public class CustomBroadcastReceiver extends BroadcastReceiver {
     public CustomBroadcastReceiver() {}
     private List<UserTemplatesData> userTemplatesDataList = null;
-    private Map<String, UserTemplatesData> numberToActiveTemplateMap = new HashMap<>();
+    private Map<PhoneNumber, UserTemplatesData> numberToActiveTemplateMap = new HashMap<>();
     private ActionManager callActionManager = new CallActionManager();
     private ActionManager messageActionManager = new MessageActionManager();
 
@@ -40,7 +40,7 @@ public class CustomBroadcastReceiver extends BroadcastReceiver {
             numberToActiveTemplateMap = constructMap(userTemplatesDataList);
             Log.i(this.getClass().getSimpleName(), "Inmemory cache refreshed");
         }
-        Log.i(this.getClass().getSimpleName(), "Hashcode is:" + String.valueOf(intent.hashCode()));
+
         Bundle extras = intent.getExtras();
         if(extras == null)
         {
@@ -63,36 +63,37 @@ public class CustomBroadcastReceiver extends BroadcastReceiver {
             return;
         }
         Log.i(this.getClass().getSimpleName(), "Incoming number with country code = " + incomingNumberWithCountryCode);
-        String incomingNumber = incomingNumberWithCountryCode.substring(3); // Assuming first 3 chars are country codes.
-        Log.i(this.getClass().getSimpleName(), "Incoming number = " + incomingNumber);
-        if(numberToActiveTemplateMap.get(incomingNumber) != null)
+
+        // All the numbers in the templates are stored along with the country code.
+        Log.i(this.getClass().getSimpleName(), "Incoming number = " + incomingNumberWithCountryCode);
+        if(numberToActiveTemplateMap.get(new PhoneNumber(incomingNumberWithCountryCode)) != null)
         {
-            Log.i(this.getClass().getSimpleName(), "Template found for incoming number = " + incomingNumber + ", running defined actions");
+            Log.i(this.getClass().getSimpleName(), "Template found for incoming number = " + incomingNumberWithCountryCode + ", running defined actions");
             UserContext userContext = new UserContext();
-            UserTemplatesData userTemplatesData = numberToActiveTemplateMap.get(incomingNumber);
+            UserTemplatesData userTemplatesData = numberToActiveTemplateMap.get(new PhoneNumber(incomingNumberWithCountryCode));
             userContext.setMessage(userTemplatesData.getMessage());
-            userContext.setNumber(incomingNumber);
+            userContext.setNumber(incomingNumberWithCountryCode);
 
             callActionManager.takeAction(userContext, context);
             messageActionManager.takeAction(userContext, context);
-            Toast.makeText(context, "Incoming call from number = " + incomingNumber + " ended and message sent", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "Incoming call from number = " + incomingNumberWithCountryCode + " ended and message sent", Toast.LENGTH_LONG).show();
         }
         else
         {
-            Log.i(this.getClass().getSimpleName(), "No active template found for this number: " + incomingNumber);
+            Log.i(this.getClass().getSimpleName(), "No active template found for this number: " + incomingNumberWithCountryCode);
         }
     }
 
-    private Map<String, UserTemplatesData> constructMap(List<UserTemplatesData> userTemplatesDataList)
+    private Map<PhoneNumber, UserTemplatesData> constructMap(List<UserTemplatesData> userTemplatesDataList)
     {
-        Map<String, UserTemplatesData> numberToActiveTemplateMap = new HashMap<>();
+        Map<PhoneNumber, UserTemplatesData> numberToActiveTemplateMap = new HashMap<>();
         for(UserTemplatesData userTemplatesData: userTemplatesDataList)
         {
             if(numberToActiveTemplateMap.get(userTemplatesData.getContactNumber()) != null)
             {
                 throw new IllegalArgumentException("More than 1 active template found for number = " + userTemplatesData.getContactNumber());
             }
-            numberToActiveTemplateMap.put(userTemplatesData.getContactNumber(), userTemplatesData);
+            numberToActiveTemplateMap.put(new PhoneNumber(userTemplatesData.getContactNumber()), userTemplatesData);
         }
         return numberToActiveTemplateMap;
     }

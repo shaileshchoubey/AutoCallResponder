@@ -12,9 +12,10 @@
     <string name="enter_num_message">Enter the mobile number</string>
     <string name="enter_text_message">Enter the text to send</string>
     <string name="send_message">Send message</string>
+    <string name="select_contact">Select contact</string>
     <string name="title_activity_display_message">Details</string>
     <string name="title_activity_block_call">BlockCallActivity</string>
     <string name="title_activity_manage_templates">ManageTemplatesActivity</string>
     <string name="title_activity_show_template_details">ShowTemplateDetailsActivity</string>
-
+    <string name="search_hint">Enter the contact name</string>
 </resources>
